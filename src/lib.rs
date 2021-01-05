@@ -112,7 +112,7 @@ fn run_wasm_pack(opt: &WebBundlerOpt, retries: u32) -> Result<()> {
             // processes are conflicting over WASM_PACK_CACHE. This
             // random wait in an attempt to get them restarting at
             // different times.
-            let wait_ms = thread_rng().gen_range(1000, 5000);
+            let wait_ms = thread_rng().gen_range(1000..5000);
             thread::sleep(Duration::from_millis(wait_ms));
             run_wasm_pack(opt, retries - 1)
         } else {
