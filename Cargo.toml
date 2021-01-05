@@ -6,7 +6,7 @@ edition = "2018"
 repository = "https://github.com/panoptix-za/web-bundler"
 license = "MIT/Apache-2.0"
 keywords = ["wasm", "web"]
-categories = ["WebAssembly"]
+categories = ["web-programming"]
 authors = ["Justin Wernick <justin@worthe-it.co.za>"]
 
 [dependencies]
