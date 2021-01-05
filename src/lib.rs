@@ -151,13 +151,17 @@ fn prepare_dist_directory(opt: &WebBundlerOpt) -> Result<()> {
 fn bundle_assets(opt: &WebBundlerOpt) -> Result<()> {
     let src = opt.src_dir.join("static");
     let dest = &opt.dist_dir;
-    fs_extra::dir::copy(&src, &dest, &fs_extra::dir::CopyOptions::new()).with_context(|| {
-        format!(
-            "Failed to copy static files from {} to {}",
-            src.display(),
-            dest.display()
-        )
-    })?;
+    if src.exists() {
+        fs_extra::dir::copy(&src, &dest, &fs_extra::dir::CopyOptions::new()).with_context(
+            || {
+                format!(
+                    "Failed to copy static files from {} to {}",
+                    src.display(),
+                    dest.display()
+                )
+            },
+        )?;
+    }
     Ok(())
 }
 
@@ -230,12 +234,16 @@ fn bundle_js_snippets(opt: &WebBundlerOpt) -> Result<()> {
     let src = opt.tmp_dir.join("snippets");
     let dest = &opt.dist_dir;
 
-    fs_extra::dir::copy(&src, &dest, &fs_extra::dir::CopyOptions::new()).with_context(|| {
-        format!(
-            "Failed to copy js snippets from {} to {}",
-            src.display(),
-            dest.display()
-        )
-    })?;
+    if src.exists() {
+        fs_extra::dir::copy(&src, &dest, &fs_extra::dir::CopyOptions::new()).with_context(
+            || {
+                format!(
+                    "Failed to copy js snippets from {} to {}",
+                    src.display(),
+                    dest.display()
+                )
+            },
+        )?;
+    }
     Ok(())
 }
