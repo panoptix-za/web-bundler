@@ -58,3 +58,47 @@ async fn serve(path: &str) -> Result<impl warp::Reply, warp::Rejection> {
         Err(warp::reject::not_found())
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use warp::http::status::StatusCode;
+
+    #[tokio::test]
+    async fn test_html() {
+        let filter = ui_routes();
+        let response = warp::test::request().path("/").reply(&filter).await;
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let response_body: String = String::from_utf8(response.body().to_vec()).unwrap();
+
+        assert!(response_body
+            .contains("<style>button{background:black;color:white;font-size:100px}\n</style>"));
+        assert!(response_body.contains("<title>Seed Quickstart</title>"));
+
+        assert!(response_body.contains("<script type=\"module\">"));
+    }
+
+    #[tokio::test]
+    async fn test_wasm() {
+        let filter = ui_routes();
+        let response = warp::test::request()
+            .path("/app-2.5.0.wasm")
+            .reply(&filter)
+            .await;
+
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_static_file() {
+        let filter = ui_routes();
+        let response = warp::test::request()
+            .path("/static/star.png")
+            .reply(&filter)
+            .await;
+
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+}
