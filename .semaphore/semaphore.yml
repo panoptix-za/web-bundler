@@ -14,17 +14,23 @@ blocks:
         - name: cargo test
           commands:
             - checkout
+            - cache restore cargo
+            - cache restore lib
             - cargo build --verbose
             - cargo test --verbose
+            - cache store lib target
   - name: Test Example
     task:
       jobs:
         - name: cargo test example
           commands:
             - checkout
+            - cache restore cargo
+            - cache restore lib
             - cd example
             - cargo build --verbose
             - cargo test --verbose
+            - cache store cargo $HOME/.cargo
       prologue:
         commands:
           - rustup target add wasm32-unknown-unknown
