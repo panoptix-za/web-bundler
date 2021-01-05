@@ -17,6 +17,13 @@ From a clean Rustup-based Rust install, you'd need to add these steps:
 - `rustup target add wasm32-unknown-unknown`
 - `cargo install wasm-pack`
 
+## Running the Demo Example
+
+There is an example usage in the [example directory](./example). To
+run the example, open a terminal in the example directory and run
+`cargo run`. Then, open a web browser and navigate to
+<http://localhost:3030/>. You should see a Seed web application.
+
 ## Usage
 
 Web-bundler expects you to have two projects: a frontend project using
