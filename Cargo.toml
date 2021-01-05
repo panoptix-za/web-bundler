@@ -3,6 +3,11 @@ name = "web-bundler"
 description = "Bundles a Seed SPA for publishing"
 version = "0.1.0"
 edition = "2018"
+repository = "https://github.com/panoptix-za/web-bundler"
+license = "MIT/Apache-2.0"
+keywords = ["wasm", "web"]
+categories = ["WebAssembly"]
+authors = ["Justin Wernick <justin@worthe-it.co.za>"]
 
 [dependencies]
 fs_extra = "1"
