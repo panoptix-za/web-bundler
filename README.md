@@ -1,6 +1,9 @@
 Web Bundler
 ===========
 
+[![crates.io](https://img.shields.io/crates/v/web-bundler.svg)](https://crates.io/crates/web-bundler)
+[![build status](https://panoptix.semaphoreci.com/badges/web-bundler.svg)](https://github.com/panoptix-za/web-bundler)
+
 Manages the building of WebAssembly single page app frontends from a
 build.rs script so that they can easily be embedded into Rust api
 projects.
