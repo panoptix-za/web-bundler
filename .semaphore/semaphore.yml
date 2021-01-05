@@ -16,10 +16,6 @@ blocks:
             - checkout
             - cargo build --verbose
             - cargo test --verbose
-      prologue:
-        commands:
-          - rustup target add wasm32-unknown-unknown
-          - cargo install wasm-pack
   - name: Test Example
     task:
       jobs:
@@ -29,3 +25,7 @@ blocks:
             - cd example
             - cargo build --verbose
             - cargo test --verbose
+      prologue:
+        commands:
+          - rustup target add wasm32-unknown-unknown
+          - cargo install wasm-pack
