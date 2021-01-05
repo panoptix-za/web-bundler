@@ -84,7 +84,7 @@ mod test {
     async fn test_wasm() {
         let filter = ui_routes();
         let response = warp::test::request()
-            .path("/app-2.5.0.wasm")
+            .path("/app-0.0.0.wasm")
             .reply(&filter)
             .await;
 
