@@ -23,9 +23,3 @@ path = "../frontend"
 
 [build-dependencies.web-bundler]
 path = "../.."
-
-# pinning to this version since syn v1.0.58 broke API
-# https://github.com/dtolnay/syn/commit/957840eba2c7f11c95e0227760d78dc481a91de7
-# issue tracked at https://github.com/pyros2097/rust-embed/issues/127
-[dependencies.syn]
-version = "=1.0.57"
