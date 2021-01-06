@@ -7,7 +7,10 @@ repository = "https://github.com/panoptix-za/web-bundler"
 license = "MIT/Apache-2.0"
 keywords = ["wasm", "web"]
 categories = ["web-programming"]
-authors = ["Justin Wernick <justin@worthe-it.co.za>"]
+authors = [
+  "Martin Kavík <martin@kavik.cz>",
+  "Panoptix OSS maintainers <oss@panoptix.io>",
+]
 
 [dependencies]
 fs_extra = "1"
