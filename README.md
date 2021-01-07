@@ -31,7 +31,7 @@ run the example, open a terminal in the example directory and run
 
 Web-bundler expects you to have two projects: a frontend project using
 a single page app framework like Seed, and a backend project using a
-web server framework like [warp].
+web server framework like [warp][warp].
 These projects should be in a common
 workspace.
 
