@@ -30,8 +30,8 @@ run the example, open a terminal in the example directory and run
 ## Usage
 
 Web-bundler expects you to have two projects: a frontend project using
-a single page app framework like Seed, and a backend project using a
-web server framework like [warp].
+a single page app framework (like [Seed]), and a backend project using a
+web server framework (like [warp]).
 These projects should be in a common
 workspace.
 
@@ -88,6 +88,7 @@ will already be locking `target` while running the build.rs
 script.
 
 [warp]: https://github.com/seanmonstar/warp
+[Seed]: https://github.com/seed-rs/seed
 
 ## License
 
