@@ -84,14 +84,7 @@ fn list_cargo_rerun_if_changed_files(opt: &WebBundlerOpt) -> Result<()> {
 fn run_wasm_pack(opt: &WebBundlerOpt, retries: u32) -> Result<()> {
     let target_dir = opt.workspace_root.join("web-target");
 
-    std::env::set_var(
-        "CARGO_TARGET_DIR",
-        target_dir
-            .clone()
-            .into_os_string()
-            .into_string()
-            .expect("couldn't parse target_dir into a String"),
-    );
+    std::env::set_var("CARGO_TARGET_DIR", target_dir.as_os_str());
 
     let build_opts = BuildOptions {
         path: Some(opt.src_dir.clone()),
@@ -108,7 +101,7 @@ fn run_wasm_pack(opt: &WebBundlerOpt, retries: u32) -> Result<()> {
             .clone()
             .into_os_string()
             .into_string()
-            .expect("couldn't parse tmp_dir into a String"),
+            .map_err(|_| anyhow!("couldn't parse tmp_dir into a String"))?,
         out_name: Some("package".to_owned()),
         extra_options: vec![],
     };
