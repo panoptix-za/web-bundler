@@ -1,8 +1,9 @@
 use anyhow::{anyhow, Context, Result};
 use rand::{thread_rng, Rng};
-use std::{fs, path::PathBuf, process::Command, thread, time::Duration};
+use std::{fs, path::PathBuf, thread, time::Duration};
 use tera::Tera;
 use walkdir::WalkDir;
+use wasm_pack::command::build::{Build, BuildOptions};
 
 /// Bundles a Seed SPA web application for publishing
 ///
@@ -82,50 +83,49 @@ fn list_cargo_rerun_if_changed_files(opt: &WebBundlerOpt) -> Result<()> {
 
 fn run_wasm_pack(opt: &WebBundlerOpt, retries: u32) -> Result<()> {
     let target_dir = opt.workspace_root.join("web-target");
-    let output = Command::new("wasm-pack")
-        .arg("build")
-        .arg("--target")
-        .arg("web")
-        .arg(if opt.release { "--release" } else { "--dev" })
-        .arg("--no-typescript")
-        .arg("--out-name")
-        .arg("package")
-        .arg("--out-dir")
-        .arg(opt.tmp_dir.as_os_str())
-        .current_dir(&opt.src_dir)
-        .env("CARGO_TARGET_DIR", target_dir.as_os_str())
-        .output()
-        .context("Failed to run wasm-pack")?;
 
-    if output.status.success() {
-        Ok(())
-    } else {
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        let stderr = String::from_utf8_lossy(&output.stderr);
+    std::env::set_var("CARGO_TARGET_DIR", target_dir.as_os_str());
 
-        let is_wasm_cache_error = stderr.contains("Error: Directory not empty")
-            || stderr.contains("binary does not exist");
+    let build_opts = BuildOptions {
+        path: Some(opt.src_dir.clone()),
+        scope: None,
+        mode: wasm_pack::install::InstallMode::Normal,
+        disable_dts: true,
+        target: wasm_pack::command::build::Target::Web,
+        debug: !opt.release,
+        dev: !opt.release,
+        release: opt.release,
+        profiling: false,
+        out_dir: opt
+            .tmp_dir
+            .clone()
+            .into_os_string()
+            .into_string()
+            .map_err(|_| anyhow!("couldn't parse tmp_dir into a String"))?,
+        out_name: Some("package".to_owned()),
+        extra_options: vec![],
+    };
 
-        if is_wasm_cache_error && retries > 0 {
-            // This step could error because of a legitimate failure,
-            // or it could error because two parallel wasm-pack
-            // processes are conflicting over WASM_PACK_CACHE. This
-            // random wait in an attempt to get them restarting at
-            // different times.
-            let wait_ms = thread_rng().gen_range(1000..5000);
-            thread::sleep(Duration::from_millis(wait_ms));
-            run_wasm_pack(opt, retries - 1)
-        } else {
-            Err(anyhow!(
-                "\
-wasm-pack failed to build the package.
-stdout:
-{}
-stderr:
-{}",
-                stdout,
-                stderr
-            ))
+    let res = Build::try_from_opts(build_opts).and_then(|mut b| b.run());
+
+    match res {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            let is_wasm_cache_error = e.to_string().contains("Error: Directory not empty")
+                || e.to_string().contains("binary does not exist");
+
+            if is_wasm_cache_error && retries > 0 {
+                // This step could error because of a legitimate failure,
+                // or it could error because two parallel wasm-pack
+                // processes are conflicting over WASM_PACK_CACHE. This
+                // random wait in an attempt to get them restarting at
+                // different times.
+                let wait_ms = thread_rng().gen_range(1000..5000);
+                thread::sleep(Duration::from_millis(wait_ms));
+                run_wasm_pack(opt, retries - 1)
+            } else {
+                Err(anyhow!(e))
+            }
         }
     }
 }
