@@ -25,11 +25,9 @@ blocks:
         - name: cargo test example
           commands:
             - checkout
-            - cache restore rustup
-            - cache restore cargo
-            - cache restore lib
-            - rustup target add wasm32-unknown-unknown
-            - cargo install wasm-pack
+            # - cache restore rustup
+            # - cache restore cargo
+            # - cache restore lib
             - cd example
             - cargo build --verbose
             - cargo test --verbose
