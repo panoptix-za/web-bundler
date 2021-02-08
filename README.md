@@ -8,17 +8,20 @@ Manages the building of WebAssembly single page app frontends from a
 build.rs script so that they can easily be embedded into Rust api
 projects.
 
-Internally, the bundler calls the
-[wasm-pack](https://github.com/rustwasm/wasm-pack) CLI to do the
-actual webassembly compilation, which must be installed and available
-on the path.
+Internally, the bundler uses
+[wasm-pack](https://github.com/rustwasm/wasm-pack) to do the actual
+webassembly compilation.
 
 ## Prerequisites
 
-From a clean Rustup-based Rust install, you'd need to add these steps:
+From a clean Rustup-based Rust installation, there are no additional
+steps. Web Bundler will download and install any dependencies it
+needs.
 
-- `rustup target add wasm32-unknown-unknown`
-- `cargo install wasm-pack`
+For Rust installations that are not done with Rustup, you will need to
+add the `wasm32-unknown-unknown` compilation target manually (see the
+[wasm-pack docs](https://rustwasm.github.io/docs/wasm-pack/prerequisites/non-rustup-setups.html)
+for details on how to do this).
 
 ## Running the Demo Example
 

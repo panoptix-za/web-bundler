@@ -6,7 +6,7 @@ agent:
     os_image: ubuntu1804
   containers:
     - name: main
-      image: 'registry.semaphoreci.com/rust:1.47'
+      image: 'registry.semaphoreci.com/rust:1.49'
 blocks:
   - name: Test
     task:
@@ -28,8 +28,6 @@ blocks:
             - cache restore rustup
             - cache restore cargo
             - cache restore lib
-            - rustup target add wasm32-unknown-unknown
-            - cargo install wasm-pack
             - cd example
             - cargo build --verbose
             - cargo test --verbose
