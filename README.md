@@ -5,7 +5,7 @@ Web Bundler
 [![build status](https://panoptix.semaphoreci.com/badges/web-bundler/branches/main.svg)](https://panoptix.semaphoreci.com/projects/web-bundler)
 
 Manages the building of WebAssembly single page app frontends from a
-build.rs script so that they can easily be embedded into Rust api
+build.rs script so that they can easily be embedded into Rust API
 projects.
 
 Internally, the bundler uses
