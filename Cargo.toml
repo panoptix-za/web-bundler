@@ -11,6 +11,7 @@ authors = [
   "Panoptix OSS maintainers <oss@panoptix.io>",
   "Martin Kavík <martin@kavik.cz>",
 ]
+readme = "README.md"
 
 [dependencies]
 fs_extra = "1"
