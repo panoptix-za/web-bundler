@@ -86,6 +86,13 @@ fn run_wasm_pack(opt: &WebBundlerOpt, retries: u32) -> Result<()> {
 
     std::env::set_var("CARGO_TARGET_DIR", target_dir.as_os_str());
 
+    // TODO: Review which of these vars actually need to be unset, and
+    // which extra additionally need to be unset. We should probably
+    // also reset them at the end of this function.
+    std::env::remove_var("CARGO_CFG_TARGET_FAMILY");
+    std::env::remove_var("CARGO_CFG_TARGET_FEATURE");
+    std::env::remove_var("CARGO_CFG_UNIX");
+
     let build_opts = BuildOptions {
         path: Some(opt.src_dir.clone()),
         scope: None,

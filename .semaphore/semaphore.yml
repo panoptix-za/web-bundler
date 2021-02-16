@@ -31,5 +31,8 @@ blocks:
             - cd example
             - cargo build --verbose
             - cargo test --verbose
+            - cd ../tests/bevy
+            - cargo build --verbose
+            - cargo test --verbose
             - cache store rustup $RUSTUP_HOME
             - cache store cargo $CARGO_HOME
