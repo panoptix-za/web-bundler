@@ -1,0 +1,18 @@
+version: v1.0
+name: Pipeline 2
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu1804
+blocks:
+  - name: Integration tests
+    task:
+      jobs:
+        - name: cargo test bevy example
+          commands:
+            - checkout
+            - cache restore rustup
+            - cache restore cargo
+            - cd tests/bevy
+            - cargo build --verbose
+            - cargo test --verbose

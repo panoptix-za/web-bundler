@@ -33,3 +33,6 @@ blocks:
             - cargo test --verbose
             - cache store rustup $RUSTUP_HOME
             - cache store cargo $CARGO_HOME
+promotions:
+  - name: Run Long-running Tests
+    pipeline_file: pipeline_2.yml
