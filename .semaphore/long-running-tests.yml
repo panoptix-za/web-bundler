@@ -1,9 +1,12 @@
 version: v1.0
-name: Pipeline 2
+name: Long-running Tests
 agent:
   machine:
     type: e1-standard-2
     os_image: ubuntu1804
+  containers:
+    - name: main
+      image: 'registry.semaphoreci.com/rust:1.49'
 blocks:
   - name: Integration tests
     task:

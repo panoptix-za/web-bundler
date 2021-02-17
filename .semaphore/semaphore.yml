@@ -35,4 +35,4 @@ blocks:
             - cache store cargo $CARGO_HOME
 promotions:
   - name: Run Long-running Tests
-    pipeline_file: pipeline_2.yml
+    pipeline_file: long-running-tests.yml
