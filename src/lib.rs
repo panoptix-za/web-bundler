@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Context, Result};
 use rand::{thread_rng, Rng};
-use std::{fs, path::PathBuf, thread, time::Duration};
+use std::{collections::HashMap, fs, path::PathBuf, thread, time::Duration};
 use tera::Tera;
 use walkdir::WalkDir;
 use wasm_pack::command::build::{Build, BuildOptions};
@@ -81,60 +81,122 @@ fn list_cargo_rerun_if_changed_files(opt: &WebBundlerOpt) -> Result<()> {
     Ok(())
 }
 
-fn run_wasm_pack(opt: &WebBundlerOpt, retries: u32) -> Result<()> {
-    let target_dir = opt.workspace_root.join("web-target");
+/// Clears any environment variables that Cargo has set for this build
+/// script, so that they don't accidentally leak into build scripts
+/// that run as part of the Wasm
+/// build.
+///
+/// The list of variables to clear comes from here:
+/// https://doc.rust-lang.org/cargo/reference/environment-variables.html#environment-variables-cargo-sets-for-build-scripts
+///
+/// These variables are all reset to their original value after running.
+///
+/// Additional variables can be set if the caller wants to temporarily
+/// change their value.
+fn run_with_clean_build_script_environment_variables<T>(
+    additional_vars: impl IntoIterator<Item = &'static str>,
+    f: impl Fn() -> T,
+) -> T {
+    use std::ffi::OsString;
 
-    std::env::set_var("CARGO_TARGET_DIR", target_dir.as_os_str());
+    let mut existing_values: HashMap<OsString, Option<OsString>> = HashMap::new();
+    let build_script_vars_list = vec![
+        "CARGO",
+        "CARGO_MANIFEST_DIR",
+        "CARGO_MANIFEST_LINKS",
+        "CARGO_MAKEFLAGS",
+        "OUT_DIR",
+        "TARGET",
+        "HOST",
+        "NUM_JOBS",
+        "OPT_LEVEL",
+        "DEBUG",
+        "PROFILE",
+        "RUSTC",
+        "RUSTDOC",
+        "RUSTC_LINKER",
+    ];
 
-    // TODO: Review which of these vars actually need to be unset, and
-    // which extra additionally need to be unset. We should probably
-    // also reset them at the end of this function.
-    std::env::remove_var("CARGO_CFG_TARGET_FAMILY");
-    std::env::remove_var("CARGO_CFG_TARGET_FEATURE");
-    std::env::remove_var("CARGO_CFG_UNIX");
+    let build_script_var_prefixes = vec!["CARGO_FEATURE_", "CARGO_CFG_", "DEP_"];
 
-    let build_opts = BuildOptions {
-        path: Some(opt.src_dir.clone()),
-        scope: None,
-        mode: wasm_pack::install::InstallMode::Normal,
-        disable_dts: true,
-        target: wasm_pack::command::build::Target::Web,
-        debug: !opt.release,
-        dev: !opt.release,
-        release: opt.release,
-        profiling: false,
-        out_dir: opt
-            .tmp_dir
-            .clone()
-            .into_os_string()
-            .into_string()
-            .map_err(|_| anyhow!("couldn't parse tmp_dir into a String"))?,
-        out_name: Some("package".to_owned()),
-        extra_options: vec![],
-    };
+    for key in build_script_vars_list
+        .into_iter()
+        .chain(additional_vars.into_iter())
+    {
+        existing_values.insert(key.into(), std::env::var_os(key));
+        std::env::remove_var(key);
+    }
 
-    let res = Build::try_from_opts(build_opts).and_then(|mut b| b.run());
-
-    match res {
-        Ok(_) => Ok(()),
-        Err(e) => {
-            let is_wasm_cache_error = e.to_string().contains("Error: Directory not empty")
-                || e.to_string().contains("binary does not exist");
-
-            if is_wasm_cache_error && retries > 0 {
-                // This step could error because of a legitimate failure,
-                // or it could error because two parallel wasm-pack
-                // processes are conflicting over WASM_PACK_CACHE. This
-                // random wait in an attempt to get them restarting at
-                // different times.
-                let wait_ms = thread_rng().gen_range(1000..5000);
-                thread::sleep(Duration::from_millis(wait_ms));
-                run_wasm_pack(opt, retries - 1)
-            } else {
-                Err(anyhow!(e))
-            }
+    for (key, value) in std::env::vars_os() {
+        if build_script_var_prefixes
+            .iter()
+            .any(|prefix| key.to_string_lossy().starts_with(prefix))
+        {
+            existing_values.insert(key.clone(), Some(value));
+            std::env::remove_var(key);
         }
     }
+
+    let result = f();
+
+    for (key, value) in existing_values {
+        match value {
+            Some(value) => std::env::set_var(key, value),
+            None => std::env::remove_var(key),
+        }
+    }
+    result
+}
+
+fn run_wasm_pack(opt: &WebBundlerOpt, retries: u32) -> Result<()> {
+    run_with_clean_build_script_environment_variables(vec!["CARGO_TARGET_DIR"], || {
+        let target_dir = opt.workspace_root.join("web-target");
+
+        std::env::set_var("CARGO_TARGET_DIR", target_dir.as_os_str());
+
+        let build_opts = BuildOptions {
+            path: Some(opt.src_dir.clone()),
+            scope: None,
+            mode: wasm_pack::install::InstallMode::Normal,
+            disable_dts: true,
+            target: wasm_pack::command::build::Target::Web,
+            debug: !opt.release,
+            dev: !opt.release,
+            release: opt.release,
+            profiling: false,
+            out_dir: opt
+                .tmp_dir
+                .clone()
+                .into_os_string()
+                .into_string()
+                .map_err(|_| anyhow!("couldn't parse tmp_dir into a String"))?,
+            out_name: Some("package".to_owned()),
+            extra_options: vec![],
+        };
+
+        let res = Build::try_from_opts(build_opts).and_then(|mut b| b.run());
+
+        match res {
+            Ok(_) => Ok(()),
+            Err(e) => {
+                let is_wasm_cache_error = e.to_string().contains("Error: Directory not empty")
+                    || e.to_string().contains("binary does not exist");
+
+                if is_wasm_cache_error && retries > 0 {
+                    // This step could error because of a legitimate failure,
+                    // or it could error because two parallel wasm-pack
+                    // processes are conflicting over WASM_PACK_CACHE. This
+                    // random wait in an attempt to get them restarting at
+                    // different times.
+                    let wait_ms = thread_rng().gen_range(1000..5000);
+                    thread::sleep(Duration::from_millis(wait_ms));
+                    run_wasm_pack(opt, retries - 1)
+                } else {
+                    Err(anyhow!(e))
+                }
+            }
+        }
+    })
 }
 
 fn prepare_dist_directory(opt: &WebBundlerOpt) -> Result<()> {
