@@ -5,33 +5,7 @@ use tera::Tera;
 use walkdir::WalkDir;
 use wasm_pack::command::build::{Build, BuildOptions};
 
-/// Bundles a Seed SPA web application for publishing
-///
-/// - This script will run wasm-pack for the indicated crate.
-/// - An index.html file will be read from the src_dir, and processed with the Tera templating engine.
-/// - The .wasm file is versioned.
-/// - Files in ./static are copied to the output without modification.
-/// - Files with a .scss extension in ./css are compiled to css.
-///
-/// # Example index.html
-/// ```html
-/// <!DOCTYPE html>
-/// <html lang="en">
-///     <head>
-///         <base href="{{ base_url }}">
-///         <meta charset="utf-8">
-///         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-///
-///         {{ stylesheet | safe }}
-///
-///         <title>My Amazing Website</title>
-///     </head>
-///     <body>
-///         <div id="app"></div>
-///         {{ javascript | safe }}
-///     </body>
-/// </html>
-/// ```
+/// Options passed to [`run()`] for bundling a web application.
 pub struct WebBundlerOpt {
     /// Where to look for input files. Usually the root of the SPA crate.
     pub src_dir: PathBuf,
@@ -51,6 +25,50 @@ pub struct WebBundlerOpt {
     pub additional_watch_dirs: Vec<PathBuf>,
 }
 
+/// Bundles a web application for publishing
+///
+/// - This will run wasm-pack for the indicated crate.
+/// - An index.html file will be read from the src_dir, and processed with the Tera templating engine.
+/// - The .wasm file is versioned.
+/// - Files in ./static are copied to the output without modification.
+/// - If the file ./css/style.scss exists, it is compiled to CSS which can be inlined into the HTML template.
+///
+/// # Command Line Output
+///
+/// This function is intended to be called from a Cargo build.rs
+/// script. It writes [Cargo
+/// rerun-if-changed](https://doc.rust-lang.org/cargo/reference/build-scripts.html#outputs-of-the-build-script)
+/// directives to stdout.
+///
+/// # Example index.html
+///
+/// ```html
+/// <!DOCTYPE html>
+/// <html lang="en">
+///     <head>
+///         <base href="{{ base_url }}">
+///         <meta charset="utf-8">
+///         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+///
+///         {{ stylesheet | safe }}
+///
+///         <title>My Amazing Website</title>
+///     </head>
+///     <body>
+///         <div id="app"></div>
+///         {{ javascript | safe }}
+///     </body>
+/// </html>
+/// ```
+///
+/// # Thread Safety
+///
+/// This function sets and unsets environment variables, and so is not
+/// safe to use in multithreaded build scripts.
+///
+/// It is safe to run multiple web-bundlers at the same time if they
+/// are in different build.rs scripts, since Cargo runs each build.rs
+/// script in its own process.
 pub fn run(opt: WebBundlerOpt) -> Result<()> {
     list_cargo_rerun_if_changed_files(&opt)?;
 
