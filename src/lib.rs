@@ -270,9 +270,14 @@ fn bundle_index_html(opt: &WebBundlerOpt) -> Result<()> {
             package_js_path.display()
         )
     })?;
+
+    let wasm_path = std::path::Path::new(opt.base_url.as_ref().unwrap_or(&"".to_string()))
+        .join(format!("app-{}.wasm", opt.wasm_version));
+
     let javascript = format!(
-        r#"<script type="module">{} init('app-{}.wasm'); </script>"#,
-        package_js_content, opt.wasm_version
+        r#"<script type="module">{} init('{}'); </script>"#,
+        package_js_content,
+        wasm_path.display()
     );
     tera_context.insert("javascript", &javascript);
 
