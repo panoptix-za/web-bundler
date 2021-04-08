@@ -2,7 +2,6 @@ use anyhow::{anyhow, Context, Result};
 use rand::{thread_rng, Rng};
 use std::{collections::HashMap, fs, path::PathBuf, thread, time::Duration};
 use tera::Tera;
-use walkdir::WalkDir;
 use wasm_pack::command::build::{Build, BuildOptions};
 
 /// Options passed to [`run()`] for bundling a web application.
@@ -82,19 +81,10 @@ pub fn run(opt: WebBundlerOpt) -> Result<()> {
 }
 
 fn list_cargo_rerun_if_changed_files(opt: &WebBundlerOpt) -> Result<()> {
-    for entry in WalkDir::new(&opt.src_dir)
-        .into_iter()
-        .filter_map(|e| e.ok())
-    {
-        println!("cargo:rerun-if-changed={}", entry.path().display());
-    }
+    println!("cargo:rerun-if-changed={}", &opt.src_dir.display());
+
     for additional_watch_dir in &opt.additional_watch_dirs {
-        for entry in WalkDir::new(&additional_watch_dir)
-            .into_iter()
-            .filter_map(|e| e.ok())
-        {
-            println!("cargo:rerun-if-changed={}", entry.path().display());
-        }
+        println!("cargo:rerun-if-changed={}", additional_watch_dir.display());
     }
     Ok(())
 }
