@@ -10,7 +10,7 @@ crate-type = ["cdylib"]
 wasm-bindgen-test = "0.3"
 
 [dependencies]
-seed = "0.8"
+seed = "0.9"
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = ['-Os']

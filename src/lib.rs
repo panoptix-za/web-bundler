@@ -190,6 +190,8 @@ fn run_wasm_pack(opt: &WebBundlerOpt, retries: u32) -> Result<()> {
                 .map_err(|_| anyhow!("couldn't parse tmp_dir into a String"))?,
             out_name: Some("package".to_owned()),
             extra_options: vec![],
+            reference_types: false,
+            weak_refs: false,
         };
 
         let res = Build::try_from_opts(build_opts).and_then(|mut b| b.run());
