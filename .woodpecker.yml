@@ -1,0 +1,9 @@
+steps:
+  test:
+    image: rust
+    environment: [CARGO_TERM_COLOR=always]
+    commands:
+      - rustup default stable
+      - cargo test
+      - cargo test --manifest-path example/Cargo.toml
+      - cargo test --manifest-path tests/bevy/Cargo.toml
