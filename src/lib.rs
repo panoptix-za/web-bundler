@@ -265,20 +265,14 @@ fn bundle_index_html(opt: &WebBundlerOpt) -> Result<()> {
 
     let mut tera_context = tera::Context::new();
 
-    let package_js_path = opt.tmp_dir.join("package.js");
-    let package_js_content = fs::read_to_string(&package_js_path).with_context(|| {
-        format!(
-            "Failed to read {}. This should have been produced by wasm-pack",
-            package_js_path.display()
-        )
-    })?;
-
+    let js_path = std::path::Path::new(opt.base_url.as_ref().unwrap_or(&"".to_string()))
+        .join(format!("app-{}.js", opt.wasm_version));
     let wasm_path = std::path::Path::new(opt.base_url.as_ref().unwrap_or(&"".to_string()))
         .join(format!("app-{}.wasm", opt.wasm_version));
 
     let javascript = format!(
-        r#"<script type="module">{} init('{}'); </script>"#,
-        package_js_content,
+        r#"<script type="module">import init from '{}'; init('{}'); </script>"#,
+        js_path.display(),
         wasm_path.display()
     );
     tera_context.insert("javascript", &javascript);
@@ -312,13 +306,23 @@ fn bundle_index_html(opt: &WebBundlerOpt) -> Result<()> {
 }
 
 fn bundle_app_wasm(opt: &WebBundlerOpt) -> Result<()> {
-    let src = opt.tmp_dir.join("package_bg.wasm");
-    let dest = opt.dist_dir.join(format!("app-{}.wasm", opt.wasm_version));
-    fs::copy(&src, &dest).with_context(|| {
+    let src_wasm = opt.tmp_dir.join("package_bg.wasm");
+    let dest_wasm = opt.dist_dir.join(format!("app-{}.wasm", opt.wasm_version));
+    fs::copy(&src_wasm, &dest_wasm).with_context(|| {
         format!(
             "Failed to copy application wasm from {} to {}",
-            src.display(),
-            dest.display()
+            src_wasm.display(),
+            dest_wasm.display()
+        )
+    })?;
+
+    let src_js = opt.tmp_dir.join("package.js");
+    let dest_js = opt.dist_dir.join(format!("app-{}.js", opt.wasm_version));
+    fs::copy(&src_js, &dest_js).with_context(|| {
+        format!(
+            "Failed to copy application javascript from {} to {}",
+            src_js.display(),
+            dest_js.display()
         )
     })?;
     Ok(())
