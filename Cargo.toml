@@ -8,6 +8,7 @@ license = "MIT/Apache-2.0"
 keywords = ["wasm", "web"]
 categories = ["web-programming"]
 authors = [
+  "Justin Wernick <justin@worthe-it.co.za>",
   "Panoptix OSS maintainers <oss@panoptix.io>",
   "Martin Kavík <martin@kavik.cz>",
 ]
@@ -19,7 +20,7 @@ sass-rs = "0.2"
 anyhow = "1"
 tera = "1"
 rand = "0.8"
-wasm-pack = "0.11.1"
+wasm-pack = "0.12"
 
 [workspace]
 members = [

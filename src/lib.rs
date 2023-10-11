@@ -182,6 +182,7 @@ fn run_wasm_pack(opt: &WebBundlerOpt, retries: u32) -> Result<()> {
             extra_options: vec![],
             reference_types: false,
             weak_refs: false,
+            no_pack: true,
         };
 
         let res = Build::try_from_opts(build_opts).and_then(|mut b| b.run());
